@@ -1,25 +1,76 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "ReprodResearch1"
+author: "SK"
+date: "Sunday, November 16, 2014"
+output: html_document
 ---
+Read in data and format for use.
+```{r, setoptions, echo = TRUE}
+activity <- read.csv("~/R_work/ReprodResearch1.csv")
+good_data.df<- data.frame(activity[complete.cases(activity), ])  # activity without NA rows
+good_data.df$date <- as.Date(good_data.df$date) # get date col in date format
+```
+Calculate mean, median, sum
+```{r}
+agg_mean <- aggregate(x=good_data.df[c("steps","interval")], by=list(good_data.df$date), FUN="mean")
+agg_median <- aggregate(x=good_data.df[c("steps","interval")], by=list(good_data.df$date), FUN="median") 
+agg_sum <- aggregate(x=good_data.df[c("steps","interval")], by=list(good_data.df$date), FUN="sum") 
+agg_avg_time <- aggregate(x=good_data.df[c("steps","interval")], by=list(good_data.df$interval), FUN="mean")
+```
+Histogram of sum per day
 
-
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+hist(agg_sum$steps)
+```
+Mean of steps per day
+```{r}
+agg_mean
+```
+Median steps per day
+```{r}
+agg_median
+```
+Time series plot
+```{r}
+library(lattice)
+xyplot(agg_avg_time$steps ~ agg_avg_time$interval, data = agg_avg_time,type = "l")
+```
+Total missing numbers in steps
+```{r}
+num_na <-sum(is.na(activity$steps))
+```
+Replace na with 0.
+Recalculate mean, median, and sum
+```{r}
+for (i in 1:17568){
+ if (is.na(activity$steps[i])) {
+     activity$steps[i] <- 0
+  }
+}
+  
+agg_mean_tot <- aggregate(x=activity[c("steps","interval")], by=list(activity$date), FUN="mean")
+agg_median_tot <- aggregate(x=activity[c("steps","interval")], by=list(activity$date), FUN="median") 
+agg_sum_tot <- aggregate(x=activity[c("steps","interval")], by=list(activity$date), FUN="sum") 
+agg_avg_time_tot <- aggregate(x=activity[c("steps","interval")], by=list(activity$interval), FUN="mean")
+```
+Mean steps per day
+```{r}
+agg_mean_tot
+```
+Median steps per day
+```{r}
+agg_median_tot
+```
+Histogram of sum of steps per day
+```{r}
+hist(agg_sum_tot$steps)
+```
+Inputing values for the NAs has impacted results by adding more zero step intervals.
+Tried to identify weekdays from weekends using:
+activity$date <- as.Date(activity$date)
+for (i in 1:17568){
+  activity$day[i]<-weekdays(activity$date[i])
+  if (isTRUE(all.equal(activity$day[i] == "Saturday" | "Sunday")){
+    activity$w[i]<-1
+  }else{activity$w[i]<-0}
+}
